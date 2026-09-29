@@ -3,8 +3,10 @@ import threading
 import requests
 import os
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 database_accounts = [
     {"id": 1, "token": "token_dummy_1", "status": "active"},
@@ -33,6 +35,28 @@ def background_auto_maintenance():
 
 maintenance_thread = threading.Thread(target=background_auto_maintenance, daemon=True)
 maintenance_thread.start()
+
+@app.route('/api/get_player_info', methods=['POST'])
+def api_get_player_info():
+    data = request.json or {}
+    uid = data.get('uid')
+
+    if not uid:
+        return jsonify({"status": "error", "message": "UID is required!"}), 400
+
+    # Me thanadi oya Free Fire player ge profile details fetch karana logic ekata API request ekak add karanna puluwan
+    # Meeka sample response ekak:
+    player_info = {
+        "status": "success",
+        "uid": uid,
+        "nickname": f"Player_{uid}",
+        "level": 65,
+        "likes": 12500,
+        "region": "SG / ME",
+        "avatar": "default_avatar_url"
+    }
+    
+    return jsonify(player_info)
 
 @app.route('/api/send_likes', methods=['POST'])
 def api_send_likes():
@@ -75,5 +99,5 @@ def hit_garena_like_endpoint(uid, token):
     return True
 
 if __name__ == '__main__':
-    port = int(os.environ.get("PORT", 10000))
+    port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
