@@ -8,6 +8,7 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+# Database / Guest accounts pool
 database_accounts = [
     {"id": 1, "token": "token_dummy_1", "status": "active"},
     {"id": 2, "token": "token_dummy_2", "status": "active"}
@@ -33,8 +34,20 @@ def background_auto_maintenance():
         generate_new_guest_accounts(50)
         time.sleep(172800)
 
+# Start background maintenance thread
 maintenance_thread = threading.Thread(target=background_auto_maintenance, daemon=True)
 maintenance_thread.start()
+
+@app.route('/', methods=['GET'])
+def home():
+    return jsonify({
+        "status": "online",
+        "service": "FF Like Booster API",
+        "endpoints": {
+            "get_player_info": "/api/get_player_info (POST)",
+            "send_likes": "/api/send_likes (POST)"
+        }
+    })
 
 @app.route('/api/get_player_info', methods=['POST'])
 def api_get_player_info():
@@ -44,16 +57,15 @@ def api_get_player_info():
     if not uid:
         return jsonify({"status": "error", "message": "UID is required!"}), 400
 
-    # Me thanadi oya Free Fire player ge profile details fetch karana logic ekata API request ekak add karanna puluwan
-    # Meeka sample response ekak:
+    # Player info response template for your AIDE app
     player_info = {
         "status": "success",
         "uid": uid,
-        "nickname": f"Player_{uid}",
-        "level": 65,
-        "likes": 12500,
-        "region": "SG / ME",
-        "avatar": "default_avatar_url"
+        "nickname": f"KingDassa_{uid[-4:]}",
+        "level": 68,
+        "likes": 14500,
+        "region": "SG / South Asia",
+        "server_status": "Active"
     }
     
     return jsonify(player_info)
@@ -87,7 +99,7 @@ def api_send_likes():
             acc['status'] = 'banned'
             generate_new_guest_accounts(1)
 
-        time.sleep(1.0)
+        time.sleep(0.5)
 
     return jsonify({
         "status": "success",
@@ -96,6 +108,7 @@ def api_send_likes():
     })
 
 def hit_garena_like_endpoint(uid, token):
+    # Here goes the core request logic to Garena servers
     return True
 
 if __name__ == '__main__':
